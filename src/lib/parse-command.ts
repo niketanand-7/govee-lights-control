@@ -1,5 +1,11 @@
 import { generateText, Output } from "ai";
+import { createOpenAI } from "@ai-sdk/openai";
 import { z } from "zod";
+
+const huggingface = createOpenAI({
+  baseURL: "https://router.huggingface.co/v1",
+  apiKey: process.env.HF_TOKEN,
+});
 
 const LightCommandSchema = z.object({
   action: z.enum(["turn_on", "turn_off", "set_color", "set_brightness", "set_temperature"]),
@@ -31,9 +37,9 @@ export type LightCommand = z.infer<typeof LightCommandSchema>;
 
 export async function parseCommand(userMessage: string): Promise<LightCommand> {
   const { output } = await generateText({
-    model: "anthropic/claude-haiku-4.5",
+    model: huggingface("Qwen/Qwen2.5-3B-Instruct"),
     output: Output.object({ schema: LightCommandSchema }),
-    system: `You control smart home lights. Parse the user's message into a command.
+    system: `You control smart home lights. Parse the user's message into a JSON command.
 
 Available devices:
 - "floor lamp" (Floor Lamp Basic) — a floor lamp

@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { parseCommand } from "../parse-command";
 
-// Mock the AI SDK's generateText
+// Mock the AI SDK and HF provider
 vi.mock("ai", () => ({
   generateText: vi.fn(),
   Output: {
     object: vi.fn(({ schema }) => ({ schema, type: "object" })),
   },
+}));
+
+vi.mock("@ai-sdk/openai", () => ({
+  createOpenAI: vi.fn(() => vi.fn((modelId: string) => ({ modelId }))),
 }));
 
 import { generateText } from "ai";
@@ -73,7 +77,6 @@ describe("parseCommand", () => {
 
     expect(mockGenerateText).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: "anthropic/claude-haiku-4.5",
         prompt: "lights on",
       })
     );
