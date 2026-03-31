@@ -15,7 +15,9 @@ import {
 const bot = new Chat({
   userName: "govee-lights",
   adapters: {
-    telegram: createTelegramAdapter(),
+    telegram: createTelegramAdapter({
+      mode: process.env.TELEGRAM_POLLING === "true" ? "polling" : "auto",
+    }),
   },
   state: createMemoryState(),
 });

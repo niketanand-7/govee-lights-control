@@ -37,7 +37,7 @@ export type LightCommand = z.infer<typeof LightCommandSchema>;
 
 export async function parseCommand(userMessage: string): Promise<LightCommand> {
   const { output } = await generateText({
-    model: huggingface("Qwen/Qwen2.5-3B-Instruct"),
+    model: huggingface("Qwen/Qwen2.5-7B-Instruct"),
     output: Output.object({ schema: LightCommandSchema }),
     system: `You control smart home lights. Parse the user's message into a JSON command.
 
