@@ -85,6 +85,11 @@ Brightness shortcuts:
 - "night light" / "barely on" → 10%
 - Any percentage mentioned → use that number
 
+Preset modes (EXACT settings, do not deviate):
+- "coding time" / "coding mode" / "code" → floor lamp: set_color purple rgb(128,0,255) + led bulb: set_color bright orange rgb(255,165,0) + both brightness 100%
+- "meeting time" / "meeting mode" / "meeting" → both lights: set_temperature 5000K (white light) + brightness 100%
+- "normal light" / "normal mode" / "normal" → both lights: set_color warm orange rgb(255,140,0) + brightness 80%
+
 Scene shortcuts (combine multiple settings):
 - "movie mode" / "movie time" → all lights dim to 20%, warm 2700K
 - "reading" / "study" → set_temperature 5000K, brightness 80%
