@@ -1,7 +1,7 @@
 import { Chat } from "chat";
 import { createTelegramAdapter } from "@chat-adapter/telegram";
 import { createMemoryState } from "@chat-adapter/state-memory";
-import { parseCommand } from "./parse-command";
+import { parseCommand, type LightCommand } from "./parse-command";
 import {
   turnLight,
   setBrightness,
@@ -22,7 +22,7 @@ const bot = new Chat({
   state: createMemoryState(),
 });
 
-async function executeCommand(command: Awaited<ReturnType<typeof parseCommand>>) {
+async function executeSingleCommand(command: LightCommand) {
   const targets =
     command.target === "all"
       ? getAllDevices()
@@ -31,8 +31,6 @@ async function executeCommand(command: Awaited<ReturnType<typeof parseCommand>>)
   if (targets.length === 0) {
     throw new Error(`Unknown device: ${command.target}`);
   }
-
-  const results: string[] = [];
 
   for (const device of targets) {
     if (!device) continue;
@@ -57,11 +55,7 @@ async function executeCommand(command: Awaited<ReturnType<typeof parseCommand>>)
         await setColorTemperature(device.device, device.model, command.colorTemperature);
         break;
     }
-
-    results.push(device.name);
   }
-
-  return results;
 }
 
 // Handle new DMs — in Telegram, all DMs trigger onNewMention automatically
@@ -69,9 +63,13 @@ bot.onNewMention(async (thread, message) => {
   await thread.startTyping();
 
   try {
-    const command = await parseCommand(message.text);
-    await executeCommand(command);
-    await thread.post(command.reply);
+    const result = await parseCommand(message.text);
+
+    for (const command of result.commands) {
+      await executeSingleCommand(command);
+    }
+
+    await thread.post(result.reply);
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Something went wrong";
     await thread.post(`Sorry, I couldn't do that: ${msg}`);
