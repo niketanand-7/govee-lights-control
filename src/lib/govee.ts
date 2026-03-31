@@ -78,7 +78,7 @@ export async function setBrightness(
   model: string,
   brightness: number
 ): Promise<void> {
-  const clamped = Math.max(0, Math.min(100, Math.round(brightness)));
+  const clamped = Math.max(1, Math.min(100, Math.round(brightness)));
   await sendCommand({
     device,
     model,

@@ -43,19 +43,16 @@ async function executeCommand(command: Awaited<ReturnType<typeof parseCommand>>)
         await turnLight(device.device, device.model, false);
         break;
       case "set_color":
-        if (command.color) {
-          await setColor(device.device, device.model, command.color as GoveeColor);
-        }
+        if (!command.color) throw new Error("Color value missing");
+        await setColor(device.device, device.model, command.color as GoveeColor);
         break;
       case "set_brightness":
-        if (command.brightness !== undefined) {
-          await setBrightness(device.device, device.model, command.brightness);
-        }
+        if (command.brightness === undefined) throw new Error("Brightness value missing");
+        await setBrightness(device.device, device.model, command.brightness);
         break;
       case "set_temperature":
-        if (command.colorTemperature !== undefined) {
-          await setColorTemperature(device.device, device.model, command.colorTemperature);
-        }
+        if (command.colorTemperature === undefined) throw new Error("Color temperature missing");
+        await setColorTemperature(device.device, device.model, command.colorTemperature);
         break;
     }
 

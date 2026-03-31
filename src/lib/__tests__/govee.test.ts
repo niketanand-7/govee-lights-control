@@ -89,12 +89,12 @@ describe("setBrightness", () => {
     expect(body.cmd.value).toBe(100);
   });
 
-  it("clamps negative brightness to 0", async () => {
+  it("clamps negative brightness to 1 (Govee API minimum)", async () => {
     mockFetch.mockResolvedValueOnce({ ok: true });
     await setBrightness("device-id", "H6076", -10);
 
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(body.cmd.value).toBe(0);
+    expect(body.cmd.value).toBe(1);
   });
 });
 
