@@ -19,17 +19,19 @@ const SingleCommandSchema = z.object({
       b: z.number().min(0).max(255),
     })
     .optional()
-    .describe("RGB color. Only set when action is set_color."),
+    .describe("RGB color. ONLY include when action is 'set_color'. Do NOT include for set_temperature."),
   brightness: z
     .number()
     .min(0)
     .max(100)
     .optional()
-    .describe("Brightness 0-100. Only set when action is set_brightness."),
+    .describe("Brightness 0-100. ONLY include when action is 'set_brightness'."),
   colorTemperature: z
     .number()
+    .min(2000)
+    .max(9000)
     .optional()
-    .describe("Color temperature in Kelvin (2000-9000). Only set when action is set_temperature."),
+    .describe("REQUIRED when action is 'set_temperature'. Kelvin value like 2700, 5000, 5500. Must be a number."),
 });
 
 const LightCommandsSchema = z.object({
@@ -90,14 +92,16 @@ Preset modes (EXACT settings, do not deviate):
 - "meeting time" / "meeting mode" / "meeting" → both lights: set_temperature 5000K (white light) + brightness 100%
 - "normal light" / "normal mode" / "normal" → both lights: set_color warm orange rgb(255,140,0) + brightness 80%
 
-Scene shortcuts (combine multiple settings):
-- "movie mode" / "movie time" → all lights dim to 20%, warm 2700K
-- "reading" / "study" → set_temperature 5000K, brightness 80%
-- "party" → set_color with a fun color like purple, brightness 100%
-- "sleep" / "bedtime" / "goodnight" → turn_off all
-- "morning" / "wake up" → turn_on all, brightness 100%, cool 5500K
-- "relax" / "chill" → warm 2800K, brightness 40%
-- "romantic" / "date night" → warm 2500K, brightness 20%
+Scene shortcuts (combine multiple commands):
+- "movie mode" / "movie time" → command 1: set_temperature target "all" colorTemperature 2700 + command 2: set_brightness target "all" brightness 20
+- "reading" / "study" → command 1: set_temperature target "all" colorTemperature 5000 + command 2: set_brightness target "all" brightness 80
+- "party" → command 1: set_color target "all" color rgb(128,0,255) + command 2: set_brightness target "all" brightness 100
+- "sleep" / "bedtime" / "goodnight" → command 1: turn_off target "all"
+- "morning" / "wake up" → command 1: turn_on target "all" + command 2: set_temperature target "all" colorTemperature 5500 + command 3: set_brightness target "all" brightness 100
+- "relax" / "chill" → command 1: set_temperature target "all" colorTemperature 2800 + command 2: set_brightness target "all" brightness 40
+- "romantic" / "date night" → command 1: set_temperature target "all" colorTemperature 2500 + command 2: set_brightness target "all" brightness 20
+
+IMPORTANT: When action is "set_temperature", you MUST set "colorTemperature" to a number (e.g. 5000). Do NOT put color RGB values instead.
 
 Keep the reply short, casual, and fun (1 sentence). Match the user's energy.`,
     prompt: userMessage,
