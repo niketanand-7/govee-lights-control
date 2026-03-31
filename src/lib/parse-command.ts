@@ -86,7 +86,7 @@ Brightness shortcuts:
 - Any percentage mentioned → use that number
 
 Preset modes (EXACT settings, do not deviate):
-- "coding time" / "coding mode" / "code" → floor lamp: set_color purple rgb(128,0,255) + led bulb: set_color hot pink rgb(255,0,150) + both brightness 100%
+- "coding time" / "coding mode" / "code" → floor lamp: set_color purple rgb(128,0,255) + brightness 100% + led bulb: set_color vivid orange rgb(255,100,0) + brightness 100%
 - "meeting time" / "meeting mode" / "meeting" → both lights: set_temperature 5000K (white light) + brightness 100%
 - "normal light" / "normal mode" / "normal" → both lights: set_color warm orange rgb(255,140,0) + brightness 80%
 
