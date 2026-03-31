@@ -69,10 +69,10 @@ bot.onNewMention(async (thread, message) => {
       await executeSingleCommand(command);
     }
 
-    await thread.post(result.reply);
+    await thread.post(`success\n${result.reply}`);
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Something went wrong";
-    await thread.post(`Sorry, I couldn't do that: ${msg}`);
+    await thread.post(`failure\n${msg}`);
   }
 });
 
