@@ -20,6 +20,10 @@ const bot = new Chat({
     }),
   },
   state: createMemoryState(),
+  // A slow handler (LLM parse + Govee calls) holds the per-thread lock for
+  // seconds. Force-release it so rapid follow-up commands aren't dropped with a
+  // LockError; identical redeliveries are still caught by the SDK's dedupe layer.
+  onLockConflict: "force",
 });
 
 async function executeSingleCommand(command: LightCommand) {
