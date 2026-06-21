@@ -75,6 +75,9 @@ bot.onNewMention(async (thread, message) => {
 
     await thread.post(`success\n${result.reply}`);
   } catch (error) {
+    // Log so failures are visible in Vercel runtime logs — otherwise the catch
+    // swallows them into a Telegram reply and every request looks like a 200.
+    console.error("Failed to handle message:", message.text, error);
     const msg = error instanceof Error ? error.message : "Something went wrong";
     await thread.post(`failure\n${msg}`);
   }

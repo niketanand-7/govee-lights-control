@@ -1,4 +1,4 @@
-import { generateText, Output } from "ai";
+import { generateText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { z } from "zod";
 
@@ -42,11 +42,7 @@ const LightCommandsSchema = z.object({
 export type LightCommand = z.infer<typeof SingleCommandSchema>;
 export type LightCommands = z.infer<typeof LightCommandsSchema>;
 
-export async function parseCommand(userMessage: string): Promise<LightCommands> {
-  const { output } = await generateText({
-    model: huggingface("Qwen/Qwen2.5-7B-Instruct"),
-    output: Output.object({ schema: LightCommandsSchema }),
-    system: `You control smart home lights. Parse the user's message into one or more commands.
+const SYSTEM_PROMPT = `You control smart home lights. Parse the user's message into one or more commands.
 
 Available devices:
 - "floor lamp" (Floor Lamp Basic) — a floor lamp
@@ -103,13 +99,47 @@ Scene shortcuts (combine multiple commands):
 
 IMPORTANT: When action is "set_temperature", you MUST set "colorTemperature" to a number (e.g. 5000). Do NOT put color RGB values instead.
 
-Keep the reply short, casual, and fun (1 sentence). Match the user's energy.`,
-    prompt: userMessage,
-  });
+Keep the reply short, casual, and fun (1 sentence). Match the user's energy.
 
-  if (!output) {
-    throw new Error("Failed to parse command from message");
+Respond with ONLY a JSON object — no markdown fences, no commentary — of this exact shape:
+{"commands":[{"action":"turn_on|turn_off|set_color|set_brightness|set_temperature","target":"all|floor lamp|led bulb","color":{"r":0-255,"g":0-255,"b":0-255},"brightness":0-100,"colorTemperature":2000-9000}],"reply":"short string"}
+Only include "color" for set_color, "brightness" for set_brightness, and "colorTemperature" for set_temperature.`;
+
+// Pull the JSON object out of the model's response. We parse the JSON ourselves
+// instead of using the AI SDK's strict json-schema output because the HF router
+// load-balances each request across community inference providers whose grammar
+// compilers intermittently fail to compile our schema ("failed to compile
+// grammar"), which surfaced to users as "Invalid JSON response". Prompt-and-parse
+// avoids any provider-side grammar compilation and is reliable across providers.
+function extractJson(text: string): string {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const body = fenced ? fenced[1] : text;
+  const start = body.indexOf("{");
+  const end = body.lastIndexOf("}");
+  return start !== -1 && end !== -1 ? body.slice(start, end + 1) : body.trim();
+}
+
+export async function parseCommand(userMessage: string): Promise<LightCommands> {
+  // One retry: prompt-and-parse is ~100% in practice, but a single retry makes a
+  // rare malformed response self-heal rather than reaching the user as a failure.
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const { text } = await generateText({
+      model: huggingface("Qwen/Qwen2.5-7B-Instruct"),
+      system: SYSTEM_PROMPT,
+      prompt: userMessage,
+    });
+
+    try {
+      return LightCommandsSchema.parse(JSON.parse(extractJson(text)));
+    } catch (error) {
+      lastError = error;
+    }
   }
 
-  return output;
+  throw new Error(
+    `Failed to parse command from message: ${
+      lastError instanceof Error ? lastError.message : String(lastError)
+    }`
+  );
 }
